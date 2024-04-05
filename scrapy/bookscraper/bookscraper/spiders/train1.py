@@ -1,5 +1,5 @@
-import scrapy
- 
+"""import scrapy
+
 
 class BookspiderSpider(scrapy.Spider):
     name = "bookspider"
@@ -10,12 +10,19 @@ class BookspiderSpider(scrapy.Spider):
         books = response.css('article.product_pod')
 
         for book in books:
-            next_page = response.css('li.next a ::attr(href)').get()
+            yield {
+                'name': book.css('h3 a::text').get(),
+                'title': book.css('h3 a::attr(title)').get(),
+                'price': book.css('.product_price .price_color::text').get(),
+                'url': book.css('h3 a').attrib['href'],
+            }
+        next_page = response.css('li.next a ::attr(href)').get()
 
+        if next_page is not None:
             #if the catalogue/ is in the next page
             if 'catalogue/' in next_page:
                 next_page_url = 'https://books.toscrape.com/' + next_page
             else:
                 # if not in the next page it should be added and ran
                 next_page_url = 'https://books.toscrape.com/catalogue/' + next_page
-            yield response.follow(next_page_url, callback= self.parse)
+            yield response.follow(next_page_url, callback= self.parse)"""
