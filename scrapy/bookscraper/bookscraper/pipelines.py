@@ -79,3 +79,89 @@ class BookscraperPipeline:
             return 5
         else:
             return 0
+
+        return item
+
+
+import mysql.connector
+
+class SaveToMySQLPipeline:
+
+    def __init__(self):
+        self.conn = mysql.connector.connect(
+            host = 'localhost',
+            user = 'root',
+            password = '',# add password where needed
+            database = 'bookscraper'
+        )
+
+        # Create cursor, used to execute commands
+        self.cur = self.conn.cursor()
+
+        # Create table in db bookscraper if none exists
+        self.cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS bookscraper (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                url VARCHAR(255) NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                price FLOAT,
+                price_excl_tax FLOAT,
+                price_incl_tax FLOAT,
+                tax FLOAT,
+                availability INT,
+                num_reviews INT,
+                stars INT,
+                category VARCHAR(255) NOT NULL,
+                product_type VARCHAR(255) NOT NULL,
+                description VARCHAR(255) NOT NULL,
+            )
+            """
+        )
+
+    # Define insert statement
+    def process_item(self, item, spider):
+        # Insert item into db
+        self.cur.execute(
+            """
+            INSERT INTO bookscraper (
+                url,
+                title,
+                price,
+                price_excl_tax,
+                price_incl_tax,
+                tax,
+                availability,
+                num_reviews,
+                stars,
+                category,
+                product_type,
+                description
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                item['url'],
+                item['title'],
+                item['price'],
+                item['price_excl_tax'],
+                item['price_incl_tax'],
+                item['tax'],
+                item['availability'],
+                item['num_reviews'],
+                item['stars'],
+                item['category'],
+                item['product_type'],
+                str(item['description'][0])
+            )
+        )
+
+        # Execute the insert of data into the database
+        self.conn.commit()
+
+        return item
+
+    # Close the connection to database
+    def close_spider(self, spider):
+        self.cur.close()
+        self.conn.close()
