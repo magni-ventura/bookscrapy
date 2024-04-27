@@ -1,26 +1,16 @@
 from scrapy import Spider, Request
 from bookscraper.items import BookItem
-import random
 
 class BookspiderSpider(Spider):
     name = "bookspider"
     allowed_domains = ["books.toscrape.com"]
     start_urls = ["https://books.toscrape.com"]
 
-    #Overwriting the default format setting for files
     custom_settings = {
         'FEEDS': {
-            'booksdata.json': {
-                'format': 'json','overwrite': True
-            },
+            'booksdata.json': {'format': 'json', 'overwrite' : True},
         }
     }
-
-    user_agent_list = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36",
-    ]
 
     def parse(self, response):
         # Extracting book URLs from the main page
@@ -30,13 +20,13 @@ class BookspiderSpider(Spider):
             if 'catalogue/' not in relative_url:
                 relative_url = 'catalogue/' + relative_url
             book_url = response.urljoin(relative_url)
-            yield Request(book_url, callback=self.parse_book_page, headers={"User-Agent": self.user_agent_list[random.randint(0, len(self.user_agent_list)-1)]})
+            yield Request(book_url, callback=self.parse_book_page)
 
         # Extracting the URL of the next page (if it exists)
         next_page = response.css('li.next a ::attr(href)').get()
         if next_page:
             next_page = response.urljoin('catalogue/' + next_page)
-            yield Request(next_page, callback=self.parse,  headers={"User-Agent": self.user_agent_list[random.randint(0, len(self.user_agent_list)-1)]})
+            yield Request(next_page, callback=self.parse)
 
     def parse_book_page(self, response):
         # Initializing a BookItem object to store scraped data
